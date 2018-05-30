@@ -137,7 +137,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::assign_op<Scal
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
-  static EIGEN_STRONG_INLINE
+  static EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
   void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,Scalar> &)
   {
     Index dstRows = src.rows();
@@ -155,7 +155,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::add_assign_op<
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
-  static EIGEN_STRONG_INLINE
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const internal::add_assign_op<Scalar,Scalar> &)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
@@ -170,7 +170,7 @@ struct Assignment<DstXprType, Product<Lhs,Rhs,Options>, internal::sub_assign_op<
   typename enable_if<(Options==DefaultProduct || Options==AliasFreeProduct)>::type>
 {
   typedef Product<Lhs,Rhs,Options> SrcXprType;
-  static EIGEN_STRONG_INLINE
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const internal::sub_assign_op<Scalar,Scalar> &)
   {
     eigen_assert(dst.rows() == src.rows() && dst.cols() == src.cols());
@@ -190,7 +190,7 @@ struct Assignment<DstXprType, CwiseBinaryOp<internal::scalar_product_op<ScalarBi
   typedef CwiseBinaryOp<internal::scalar_product_op<ScalarBis,Scalar>,
                         const CwiseNullaryOp<internal::scalar_constant_op<ScalarBis>,Plain>,
                         const Product<Lhs,Rhs,DefaultProduct> > SrcXprType;
-  static EIGEN_STRONG_INLINE
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const AssignFunc& func)
   {
     call_assignment_no_alias(dst, (src.lhs().functor().m_other * src.rhs().lhs())*src.rhs().rhs(), func);
@@ -217,7 +217,7 @@ template<typename DstXprType, typename OtherXpr, typename ProductType, typename 
 struct assignment_from_xpr_op_product
 {
   template<typename SrcXprType, typename InitialFunc>
-  static EIGEN_STRONG_INLINE
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   void run(DstXprType &dst, const SrcXprType &src, const InitialFunc& /*func*/)
   {
     call_assignment_no_alias(dst, src.lhs(), Func1());
@@ -246,19 +246,19 @@ template<typename Lhs, typename Rhs>
 struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,InnerProduct>
 {
   template<typename Dst>
-  static inline void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     dst.coeffRef(0,0) = (lhs.transpose().cwiseProduct(rhs)).sum();
   }
   
   template<typename Dst>
-  static inline void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     dst.coeffRef(0,0) += (lhs.transpose().cwiseProduct(rhs)).sum();
   }
   
   template<typename Dst>
-  static void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   { dst.coeffRef(0,0) -= (lhs.transpose().cwiseProduct(rhs)).sum(); }
 };
 
@@ -390,7 +390,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
   template<typename Dst>
-  static EIGEN_STRONG_INLINE void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // Same as: dst.noalias() = lhs.lazyProduct(rhs);
     // but easier on the compiler side
@@ -398,14 +398,14 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,DenseShape,CoeffBasedProductMode>
   }
   
   template<typename Dst>
-  static EIGEN_STRONG_INLINE void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void addTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // dst.noalias() += lhs.lazyProduct(rhs);
     call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::add_assign_op<typename Dst::Scalar,Scalar>());
   }
   
   template<typename Dst>
-  static EIGEN_STRONG_INLINE void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
+  static EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void subTo(Dst& dst, const Lhs& lhs, const Rhs& rhs)
   {
     // dst.noalias() -= lhs.lazyProduct(rhs);
     call_assignment_no_alias(dst, lhs.lazyProduct(rhs), internal::sub_assign_op<typename Dst::Scalar,Scalar>());
