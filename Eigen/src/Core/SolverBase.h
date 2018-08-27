@@ -61,9 +61,11 @@ class SolverBase : public EigenBase<Derived>
     };
 
     /** Default constructor */
+    EIGEN_DEVICE_FUNC
     SolverBase()
     {}
 
+    EIGEN_DEVICE_FUNC
     ~SolverBase()
     {}
 
