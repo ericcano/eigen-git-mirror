@@ -95,6 +95,7 @@ template<typename _MatrixType> class PartialPivLU
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via PartialPivLU::compute(const MatrixType&).
       */
+    EIGEN_DEVICE_FUNC
     PartialPivLU();
 
     /** \brief Default Constructor with memory preallocation
@@ -103,6 +104,7 @@ template<typename _MatrixType> class PartialPivLU
       * according to the specified problem \a size.
       * \sa PartialPivLU()
       */
+    EIGEN_DEVICE_FUNC
     explicit PartialPivLU(Index size);
 
     /** Constructor.
@@ -113,6 +115,7 @@ template<typename _MatrixType> class PartialPivLU
       * If you need to deal with non-full rank, use class FullPivLU instead.
       */
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     explicit PartialPivLU(const EigenBase<InputType>& matrix);
 
     /** Constructor for \link InplaceDecomposition inplace decomposition \endlink
@@ -123,9 +126,17 @@ template<typename _MatrixType> class PartialPivLU
       * If you need to deal with non-full rank, use class FullPivLU instead.
       */
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     explicit PartialPivLU(EigenBase<InputType>& matrix);
 
+    /** Empty destructor
+      */
+    EIGEN_DEVICE_FUNC
+    ~PartialPivLU()
+    {}
+
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     PartialPivLU& compute(const EigenBase<InputType>& matrix) {
       m_lu = matrix.derived();
       compute();
@@ -138,6 +149,7 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa matrixL(), matrixU()
       */
+    EIGEN_DEVICE_FUNC
     inline const MatrixType& matrixLU() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
@@ -146,6 +158,7 @@ template<typename _MatrixType> class PartialPivLU
 
     /** \returns the permutation matrix P.
       */
+    EIGEN_DEVICE_FUNC
     inline const PermutationType& permutationP() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
@@ -171,6 +184,7 @@ template<typename _MatrixType> class PartialPivLU
       */
     // FIXME this is a copy-paste of the base-class member to add the isInitialized assertion.
     template<typename Rhs>
+    EIGEN_DEVICE_FUNC
     inline const Solve<PartialPivLU, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {
@@ -194,6 +208,7 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::inverse(), LU::inverse()
       */
+    EIGEN_DEVICE_FUNC
     inline const Inverse<PartialPivLU> inverse() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
@@ -217,8 +232,8 @@ template<typename _MatrixType> class PartialPivLU
 
     MatrixType reconstructedMatrix() const;
 
-    inline Index rows() const { return m_lu.rows(); }
-    inline Index cols() const { return m_lu.cols(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_lu.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_lu.cols(); }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
@@ -273,11 +288,13 @@ template<typename _MatrixType> class PartialPivLU
 
   protected:
 
+    EIGEN_DEVICE_FUNC
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
     }
 
+    EIGEN_DEVICE_FUNC
     void compute();
 
     MatrixType m_lu;
@@ -289,6 +306,7 @@ template<typename _MatrixType> class PartialPivLU
 };
 
 template<typename MatrixType>
+EIGEN_DEVICE_FUNC
 PartialPivLU<MatrixType>::PartialPivLU()
   : m_lu(),
     m_p(),
@@ -300,6 +318,7 @@ PartialPivLU<MatrixType>::PartialPivLU()
 }
 
 template<typename MatrixType>
+EIGEN_DEVICE_FUNC
 PartialPivLU<MatrixType>::PartialPivLU(Index size)
   : m_lu(size, size),
     m_p(size),
@@ -312,6 +331,7 @@ PartialPivLU<MatrixType>::PartialPivLU(Index size)
 
 template<typename MatrixType>
 template<typename InputType>
+EIGEN_DEVICE_FUNC
 PartialPivLU<MatrixType>::PartialPivLU(const EigenBase<InputType>& matrix)
   : m_lu(matrix.rows(),matrix.cols()),
     m_p(matrix.rows()),
@@ -325,6 +345,7 @@ PartialPivLU<MatrixType>::PartialPivLU(const EigenBase<InputType>& matrix)
 
 template<typename MatrixType>
 template<typename InputType>
+EIGEN_DEVICE_FUNC
 PartialPivLU<MatrixType>::PartialPivLU(EigenBase<InputType>& matrix)
   : m_lu(matrix.derived()),
     m_p(matrix.rows()),
@@ -362,6 +383,7 @@ struct partial_lu_impl
     *
     * \returns The index of the first pivot which is exactly zero if any, or a negative number otherwise.
     */
+  EIGEN_DEVICE_FUNC
   static Index unblocked_lu(MatrixType& lu, PivIndex* row_transpositions, PivIndex& nb_transpositions)
   {
     typedef scalar_score_coeff_op<Scalar> Scoring;
@@ -423,6 +445,7 @@ struct partial_lu_impl
     *   1 - reduce the number of instantiations to the strict minimum
     *   2 - avoid infinite recursion of the instantiations with Block<Block<Block<...> > >
     */
+  EIGEN_DEVICE_FUNC
   static Index blocked_lu(Index rows, Index cols, Scalar* lu_data, Index luStride, PivIndex* row_transpositions, PivIndex& nb_transpositions, Index maxBlockSize=256)
   {
     MapLU lu1(lu_data,StorageOrder==RowMajor?rows:luStride,StorageOrder==RowMajor?luStride:cols);
@@ -499,6 +522,7 @@ struct partial_lu_impl
 /** \internal performs the LU decomposition with partial pivoting in-place.
   */
 template<typename MatrixType, typename TranspositionType>
+EIGEN_DEVICE_FUNC
 void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, typename TranspositionType::StorageIndex& nb_transpositions)
 {
   eigen_assert(lu.cols() == row_transpositions.size());
@@ -512,6 +536,7 @@ void partial_lu_inplace(MatrixType& lu, TranspositionType& row_transpositions, t
 } // end namespace internal
 
 template<typename MatrixType>
+EIGEN_DEVICE_FUNC
 void PartialPivLU<MatrixType>::compute()
 {
   check_template_parameters();
@@ -569,6 +594,7 @@ struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assi
 {
   typedef PartialPivLU<MatrixType> LuType;
   typedef Inverse<LuType> SrcXprType;
+  EIGEN_DEVICE_FUNC
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<typename DstXprType::Scalar,typename LuType::Scalar> &)
   {
     dst = src.nestedExpression().solve(MatrixType::Identity(src.rows(), src.cols()));
@@ -585,6 +611,7 @@ struct Assignment<DstXprType, Inverse<PartialPivLU<MatrixType> >, internal::assi
   * \sa class PartialPivLU
   */
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 inline const PartialPivLU<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::partialPivLu() const
 {
