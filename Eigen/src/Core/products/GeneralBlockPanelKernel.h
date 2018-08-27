@@ -20,6 +20,7 @@ class gebp_traits;
 
 
 /** \internal \returns b if a<=0, and returns a otherwise. */
+EIGEN_DEVICE_FUNC
 inline std::ptrdiff_t manage_caching_sizes_helper(std::ptrdiff_t a, std::ptrdiff_t b)
 {
   return a<=0 ? b : a;
@@ -52,8 +53,31 @@ struct CacheSizes {
 
 
 /** \internal */
+EIGEN_DEVICE_FUNC
 inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff_t* l2, std::ptrdiff_t* l3)
 {
+  #ifdef EIGEN_CUDA_ARCH
+  if (action==GetAction)
+  {
+    // assume some sensible numbers
+    *l1 =   32 * 1024;
+    *l2 = 1024 * 1024;
+    *l3 =           0;
+    // query the L2 cache size
+    int currentDevice;
+    int l2CacheSize;
+    cudaGetDevice(&currentDevice);
+    cudaDeviceGetAttribute(&l2CacheSize, cudaDevAttrL2CacheSize, currentDevice);
+    if (l2CacheSize)
+    {
+      *l2 = l2CacheSize;
+    }
+  }
+  else
+  {
+    eigen_internal_assert(false);
+  }
+  #else // EIGEN_CUDA_ARCH
   static CacheSizes m_cacheSizes;
 
   if(action==SetAction)
@@ -75,6 +99,7 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
   {
     eigen_internal_assert(false);
   }
+  #endif
 }
 
 /* Helper for computeProductBlockingSizes.
@@ -90,6 +115,7 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
  * \sa setCpuCacheSizes */
 
 template<typename LhsScalar, typename RhsScalar, int KcFactor, typename Index>
+EIGEN_DEVICE_FUNC
 void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
@@ -270,6 +296,7 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
 }
 
 template <typename Index>
+EIGEN_DEVICE_FUNC
 inline bool useSpecificBlockingSizes(Index& k, Index& m, Index& n)
 {
 #ifdef EIGEN_TEST_SPECIFIC_BLOCKING_SIZES
@@ -304,6 +331,7 @@ inline bool useSpecificBlockingSizes(Index& k, Index& m, Index& n)
   * \sa setCpuCacheSizes */
 
 template<typename LhsScalar, typename RhsScalar, int KcFactor, typename Index>
+EIGEN_DEVICE_FUNC
 void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   if (!useSpecificBlockingSizes(k, m, n)) {
@@ -312,6 +340,7 @@ void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads
 }
 
 template<typename LhsScalar, typename RhsScalar, typename Index>
+EIGEN_DEVICE_FUNC
 inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_threads = 1)
 {
   computeProductBlockingSizes<LhsScalar,RhsScalar,1,Index>(k, m, n, num_threads);
@@ -324,6 +353,7 @@ inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_
   // FIXME (a bit overkill maybe ?)
 
   template<typename CJ, typename A, typename B, typename C, typename T> struct gebp_madd_selector {
+    EIGEN_DEVICE_FUNC
     EIGEN_ALWAYS_INLINE static void run(const CJ& cj, A& a, B& b, C& c, T& /*t*/)
     {
       c = cj.pmadd(a,b,c);
@@ -331,6 +361,7 @@ inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_
   };
 
   template<typename CJ, typename T> struct gebp_madd_selector<CJ,T,T,T,T> {
+    EIGEN_DEVICE_FUNC
     EIGEN_ALWAYS_INLINE static void run(const CJ& cj, T& a, T& b, T& c, T& t)
     {
       t = b; t = cj.pmul(a,t); c = padd(c,t);
@@ -338,6 +369,7 @@ inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_
   };
 
   template<typename CJ, typename A, typename B, typename C, typename T>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void gebp_madd(const CJ& cj, A& a, B& b, C& c, T& t)
   {
     gebp_madd_selector<CJ,A,B,C,T>::run(cj,a,b,c,t);
@@ -406,45 +438,53 @@ public:
 
   typedef ResPacket AccPacket;
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void initAcc(AccPacket& p)
   {
     p = pset1<ResPacket>(ResScalar(0));
   }
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
   {
     pbroadcast4(b, b0, b1, b2, b3);
   }
   
+//   EIGEN_DEVICE_FUNC
 //   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1)
 //   {
 //     pbroadcast2(b, b0, b1);
 //   }
   
   template<typename RhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketType& dest) const
   {
     dest = pset1<RhsPacketType>(*b);
   }
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
   {
     dest = ploadquad<RhsPacket>(b);
   }
 
   template<typename LhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacketType& dest) const
   {
     dest = pload<LhsPacketType>(a);
   }
 
   template<typename LhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhsUnaligned(const LhsScalar* a, LhsPacketType& dest) const
   {
     dest = ploadu<LhsPacketType>(a);
   }
 
   template<typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, AccPacketType& tmp) const
   {
     conj_helper<LhsPacketType,RhsPacketType,ConjLhs,ConjRhs> cj;
@@ -460,12 +500,14 @@ public:
 #endif
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void acc(const AccPacket& c, const ResPacket& alpha, ResPacket& r) const
   {
     r = pmadd(c,alpha,r);
   }
   
   template<typename ResPacketHalf>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void acc(const ResPacketHalf& c, const ResPacketHalf& alpha, ResPacketHalf& r) const
   {
     r = pmadd(c,alpha,r);
@@ -513,22 +555,26 @@ public:
 
   typedef ResPacket AccPacket;
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void initAcc(AccPacket& p)
   {
     p = pset1<ResPacket>(ResScalar(0));
   }
 
   template<typename RhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketType& dest) const
   {
     dest = pset1<RhsPacketType>(*b);
   }
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
   {
     loadRhsQuad_impl(b,dest, typename conditional<RhsPacketSize==16,true_type,false_type>::type());
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad_impl(const RhsScalar* b, RhsPacket& dest, const true_type&) const
   {
     // FIXME we can do better!
@@ -537,40 +583,47 @@ public:
     dest = ploadquad<RhsPacket>(tmp);
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad_impl(const RhsScalar* b, RhsPacket& dest, const false_type&) const
   {
     eigen_internal_assert(RhsPacketSize<=8);
     dest = pset1<RhsPacket>(*b);
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
   {
     dest = pload<LhsPacket>(a);
   }
 
   template<typename LhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhsUnaligned(const LhsScalar* a, LhsPacketType& dest) const
   {
     dest = ploadu<LhsPacketType>(a);
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
   {
     pbroadcast4(b, b0, b1, b2, b3);
   }
   
+//   EIGEN_DEVICE_FUNC
 //   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1)
 //   {
 //     pbroadcast2(b, b0, b1);
 //   }
 
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp) const
   {
     madd_impl(a, b, c, tmp, typename conditional<Vectorizable,true_type,false_type>::type());
   }
 
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp, const true_type&) const
   {
 #ifdef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
@@ -581,12 +634,14 @@ public:
 #endif
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const false_type&) const
   {
     c += a * b;
   }
 
   template <typename ResPacketType, typename AccPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void acc(const AccPacketType& c, const ResPacketType& alpha, ResPacketType& r) const
   {
     conj_helper<ResPacketType,ResPacketType,ConjLhs,false> cj;
@@ -709,8 +764,10 @@ public:
   typedef typename conditional<Vectorizable,ScalarPacket,Scalar>::type ResPacket;
   typedef typename conditional<Vectorizable,DoublePacketType,Scalar>::type AccPacket;
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void initAcc(Scalar& p) { p = Scalar(0); }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void initAcc(DoublePacketType& p)
   {
     p.first   = pset1<RealPacket>(RealScalar(0));
@@ -718,6 +775,7 @@ public:
   }
 
   // Scalar path
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, ScalarPacket& dest) const
   {
     dest = pset1<ScalarPacket>(*b);
@@ -725,21 +783,25 @@ public:
 
   // Vectorized path
   template<typename RealPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, DoublePacket<RealPacketType>& dest) const
   {
     dest.first  = pset1<RealPacketType>(real(*b));
     dest.second = pset1<RealPacketType>(imag(*b));
   }
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, ResPacket& dest) const
   {
     loadRhs(b,dest);
   }
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, DoublePacketType& dest) const
   {
     loadQuadToDoublePacket(b,dest);
   }
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
   {
     // FIXME not sure that's the best way to implement it!
@@ -750,6 +812,7 @@ public:
   }
   
   // Vectorized path
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, DoublePacketType& b0, DoublePacketType& b1)
   {
     // FIXME not sure that's the best way to implement it!
@@ -758,6 +821,7 @@ public:
   }
   
   // Scalar path
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsScalar& b0, RhsScalar& b1)
   {
     // FIXME not sure that's the best way to implement it!
@@ -766,32 +830,38 @@ public:
   }
 
   // nothing special here
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
   {
     dest = pload<LhsPacket>((const typename unpacket_traits<LhsPacket>::type*)(a));
   }
 
   template<typename LhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhsUnaligned(const LhsScalar* a, LhsPacketType& dest) const
   {
     dest = ploadu<LhsPacketType>((const typename unpacket_traits<LhsPacketType>::type*)(a));
   }
 
   template<typename LhsPacketType, typename RhsPacketType, typename ResPacketType, typename TmpType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, DoublePacket<ResPacketType>& c, TmpType& /*tmp*/) const
   {
     c.first   = padd(pmul(a,b.first), c.first);
     c.second  = padd(pmul(a,b.second),c.second);
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, ResPacket& c, RhsPacket& /*tmp*/) const
   {
     c = cj.pmadd(a,b,c);
   }
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void acc(const Scalar& c, const Scalar& alpha, Scalar& r) const { r += alpha * c; }
   
   template<typename RealPacketType, typename ResPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void acc(const DoublePacket<RealPacketType>& c, const ResPacketType& alpha, ResPacketType& r) const
   {
     // assemble c
@@ -862,12 +932,14 @@ public:
 
   typedef ResPacket AccPacket;
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void initAcc(AccPacket& p)
   {
     p = pset1<ResPacket>(ResScalar(0));
   }
 
   template<typename RhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketType& dest) const
   {
     dest = pset1<RhsPacketType>(*b);
@@ -878,6 +950,7 @@ public:
     pbroadcast4(b, b0, b1, b2, b3);
   }
   
+//   EIGEN_DEVICE_FUNC
 //   EIGEN_STRONG_INLINE void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1)
 //   {
 //     // FIXME not sure that's the best way to implement it!
@@ -885,29 +958,34 @@ public:
 //     b1 = pload1<RhsPacket>(b+1);
 //   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhs(const LhsScalar* a, LhsPacket& dest) const
   {
     dest = ploaddup<LhsPacket>(a);
   }
   
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
   {
     dest = ploadquad<RhsPacket>(b);
   }
 
   template<typename LhsPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadLhsUnaligned(const LhsScalar* a, LhsPacketType& dest) const
   {
     dest = ploaddup<LhsPacketType>(a);
   }
 
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp) const
   {
     madd_impl(a, b, c, tmp, typename conditional<Vectorizable,true_type,false_type>::type());
   }
 
   template <typename LhsPacketType, typename RhsPacketType, typename AccPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd_impl(const LhsPacketType& a, const RhsPacketType& b, AccPacketType& c, RhsPacketType& tmp, const true_type&) const
   {
 #ifdef EIGEN_HAS_SINGLE_INSTRUCTION_MADD
@@ -919,12 +997,14 @@ public:
     
   }
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void madd_impl(const LhsScalar& a, const RhsScalar& b, ResScalar& c, RhsScalar& /*tmp*/, const false_type&) const
   {
     c += a * b;
   }
 
   template <typename ResPacketType, typename AccPacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void acc(const AccPacketType& c, const ResPacketType& alpha, ResPacketType& r) const
   {
     conj_helper<ResPacketType,ResPacketType,false,ConjRhs> cj;
@@ -1003,6 +1083,7 @@ struct gebp_kernel
     ResPacketSize = Traits::ResPacketSize
   };
 
+  EIGEN_DEVICE_FUNC
   EIGEN_DONT_INLINE
   void operator()(const DataMapper& res, const LhsScalar* blockA, const RhsScalar* blockB,
                   Index rows, Index depth, Index cols, ResScalar alpha,
@@ -1090,6 +1171,7 @@ struct last_row_process_16_packets<LhsScalar, RhsScalar, Index, DataMapper,  mr,
 };
 
 template<typename LhsScalar, typename RhsScalar, typename Index, typename DataMapper, int mr, int nr, bool ConjugateLhs, bool ConjugateRhs>
+EIGEN_DEVICE_FUNC
 EIGEN_DONT_INLINE
 void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,ConjugateRhs>
   ::operator()(const DataMapper& res, const LhsScalar* blockA, const RhsScalar* blockB,
@@ -1909,10 +1991,12 @@ template<typename Scalar, typename Index, typename DataMapper, int Pack1, int Pa
 struct gemm_pack_lhs<Scalar, Index, DataMapper, Pack1, Pack2, Packet, ColMajor, Conjugate, PanelMode>
 {
   typedef typename DataMapper::LinearMapper LinearMapper;
+  EIGEN_DEVICE_FUNC
   EIGEN_DONT_INLINE void operator()(Scalar* blockA, const DataMapper& lhs, Index depth, Index rows, Index stride=0, Index offset=0);
 };
 
 template<typename Scalar, typename Index, typename DataMapper, int Pack1, int Pack2, typename Packet, bool Conjugate, bool PanelMode>
+EIGEN_DEVICE_FUNC
 EIGEN_DONT_INLINE void gemm_pack_lhs<Scalar, Index, DataMapper, Pack1, Pack2, Packet, ColMajor, Conjugate, PanelMode>
   ::operator()(Scalar* blockA, const DataMapper& lhs, Index depth, Index rows, Index stride, Index offset)
 {
@@ -2111,10 +2195,12 @@ struct gemm_pack_rhs<Scalar, Index, DataMapper, nr, ColMajor, Conjugate, PanelMo
   typedef typename packet_traits<Scalar>::type Packet;
   typedef typename DataMapper::LinearMapper LinearMapper;
   enum { PacketSize = packet_traits<Scalar>::size };
+  EIGEN_DEVICE_FUNC
   EIGEN_DONT_INLINE void operator()(Scalar* blockB, const DataMapper& rhs, Index depth, Index cols, Index stride=0, Index offset=0);
 };
 
 template<typename Scalar, typename Index, typename DataMapper, int nr, bool Conjugate, bool PanelMode>
+EIGEN_DEVICE_FUNC
 EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, DataMapper, nr, ColMajor, Conjugate, PanelMode>
   ::operator()(Scalar* blockB, const DataMapper& rhs, Index depth, Index cols, Index stride, Index offset)
 {
