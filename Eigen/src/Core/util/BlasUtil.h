@@ -51,8 +51,11 @@ template<> struct conj_if<true> {
 
 template<> struct conj_if<false> {
   template<typename T>
+  EIGEN_DEVICE_FUNC
   inline const T& operator()(const T& x) const { return x; }
+
   template<typename T>
+  EIGEN_DEVICE_FUNC
   inline const T& pconj(const T& x) const { return x; }
 };
 
@@ -472,9 +475,9 @@ protected:
 template<typename Scalar, typename Index, int StorageOrder>
 class const_blas_data_mapper : public blas_data_mapper<const Scalar, Index, StorageOrder> {
   public:
-  EIGEN_ALWAYS_INLINE const_blas_data_mapper(const Scalar *data, Index stride) : blas_data_mapper<const Scalar, Index, StorageOrder>(data, stride) {}
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE const_blas_data_mapper(const Scalar *data, Index stride) : blas_data_mapper<const Scalar, Index, StorageOrder>(data, stride) {}
 
-  EIGEN_ALWAYS_INLINE const_blas_data_mapper<Scalar, Index, StorageOrder> getSubMapper(Index i, Index j) const {
+  EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE const_blas_data_mapper<Scalar, Index, StorageOrder> getSubMapper(Index i, Index j) const {
     return const_blas_data_mapper<Scalar, Index, StorageOrder>(&(this->operator()(i, j)), this->m_stride);
   }
 };
