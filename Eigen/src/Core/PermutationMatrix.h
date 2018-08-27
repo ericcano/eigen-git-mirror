@@ -71,6 +71,7 @@ class PermutationBase : public EigenBase<Derived>
 
     /** Copies the other permutation into *this */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const PermutationBase<OtherDerived>& other)
     {
       indices() = other.indices();
@@ -79,6 +80,7 @@ class PermutationBase : public EigenBase<Derived>
 
     /** Assignment from the Transpositions \a tr */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const TranspositionsBase<OtherDerived>& tr)
     {
       setIdentity(tr.size());
@@ -91,6 +93,7 @@ class PermutationBase : public EigenBase<Derived>
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
+    EIGEN_DEVICE_FUNC
     Derived& operator=(const PermutationBase& other)
     {
       indices() = other.indices();
@@ -127,18 +130,22 @@ class PermutationBase : public EigenBase<Derived>
     }
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return derived().indices(); }
     /** \returns a reference to the stored array representing the permutation. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return derived().indices(); }
 
     /** Resizes to given size.
       */
+    EIGEN_DEVICE_FUNC
     inline void resize(Index newSize)
     {
       indices().resize(newSize);
     }
 
     /** Sets *this to be the identity permutation matrix */
+    EIGEN_DEVICE_FUNC
     void setIdentity()
     {
       StorageIndex n = StorageIndex(size());
@@ -148,6 +155,7 @@ class PermutationBase : public EigenBase<Derived>
 
     /** Sets *this to be the identity permutation matrix of given size.
       */
+    EIGEN_DEVICE_FUNC
     void setIdentity(Index newSize)
     {
       resize(newSize);
@@ -182,10 +190,11 @@ class PermutationBase : public EigenBase<Derived>
       *
       * \sa applyTranspositionOnTheLeft(Index,Index)
       */
+    EIGEN_DEVICE_FUNC
     Derived& applyTranspositionOnTheRight(Index i, Index j)
     {
       eigen_assert(i>=0 && j>=0 && i<size() && j<size());
-      std::swap(indices().coeffRef(i), indices().coeffRef(j));
+      numext::swap(indices().coeffRef(i), indices().coeffRef(j));
       return derived();
     }
 
@@ -318,11 +327,13 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     typedef typename Traits::StorageIndex StorageIndex;
     #endif
 
+    EIGEN_DEVICE_FUNC
     inline PermutationMatrix()
     {}
 
     /** Constructs an uninitialized permutation matrix of given size.
       */
+    EIGEN_DEVICE_FUNC
     explicit inline PermutationMatrix(Index size) : m_indices(size)
     {
       eigen_internal_assert(size <= NumTraits<StorageIndex>::highest());
@@ -330,12 +341,14 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
     /** Copy constructor. */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     inline PermutationMatrix(const PermutationBase<OtherDerived>& other)
       : m_indices(other.indices()) {}
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Standard copy constructor. Defined only to prevent a default copy constructor
       * from hiding the other templated constructor */
+    EIGEN_DEVICE_FUNC
     inline PermutationMatrix(const PermutationMatrix& other) : m_indices(other.indices()) {}
     #endif
 
@@ -347,11 +360,13 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
       * array's size.
       */
     template<typename Other>
+    EIGEN_DEVICE_FUNC
     explicit inline PermutationMatrix(const MatrixBase<Other>& indices) : m_indices(indices)
     {}
 
     /** Convert the Transpositions \a tr to a permutation matrix */
     template<typename Other>
+    EIGEN_DEVICE_FUNC
     explicit PermutationMatrix(const TranspositionsBase<Other>& tr)
       : m_indices(tr.size())
     {
@@ -360,6 +375,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
     /** Copies the other permutation into *this */
     template<typename Other>
+    EIGEN_DEVICE_FUNC
     PermutationMatrix& operator=(const PermutationBase<Other>& other)
     {
       m_indices = other.indices();
@@ -368,6 +384,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
 
     /** Assignment from the Transpositions \a tr */
     template<typename Other>
+    EIGEN_DEVICE_FUNC
     PermutationMatrix& operator=(const TranspositionsBase<Other>& tr)
     {
       return Base::operator=(tr.derived());
@@ -377,6 +394,7 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
+    EIGEN_DEVICE_FUNC
     PermutationMatrix& operator=(const PermutationMatrix& other)
     {
       m_indices = other.m_indices;
@@ -385,10 +403,12 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
     #endif
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return m_indices; }
-    /** \returns a reference to the stored array representing the permutation. */
-    IndicesType& indices() { return m_indices; }
 
+    /** \returns a reference to the stored array representing the permutation. */
+    EIGEN_DEVICE_FUNC
+    IndicesType& indices() { return m_indices; }
 
     /**** multiplication helpers to hopefully get RVO ****/
 
@@ -402,7 +422,9 @@ class PermutationMatrix : public PermutationBase<PermutationMatrix<SizeAtCompile
       for (StorageIndex i=0; i<end;++i)
         m_indices.coeffRef(other.derived().nestedExpression().indices().coeff(i)) = i;
     }
+
     template<typename Lhs,typename Rhs>
+    EIGEN_DEVICE_FUNC
     PermutationMatrix(internal::PermPermProduct_t, const Lhs& lhs, const Rhs& rhs)
       : m_indices(lhs.indices().size())
     {
