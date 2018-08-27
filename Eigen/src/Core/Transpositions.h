@@ -23,7 +23,10 @@ class TranspositionsBase
     typedef typename IndicesType::Scalar StorageIndex;
     typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
 
+    EIGEN_DEVICE_FUNC
     Derived& derived() { return *static_cast<Derived*>(this); }
+
+    EIGEN_DEVICE_FUNC
     const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
     /** Copies the \a other transpositions into \c *this */
@@ -46,37 +49,50 @@ class TranspositionsBase
     #endif
 
     /** \returns the number of transpositions */
+    EIGEN_DEVICE_FUNC
     Index size() const { return indices().size(); }
     /** \returns the number of rows of the equivalent permutation matrix */
+    EIGEN_DEVICE_FUNC
     Index rows() const { return indices().size(); }
     /** \returns the number of columns of the equivalent permutation matrix */
+    EIGEN_DEVICE_FUNC
     Index cols() const { return indices().size(); }
 
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline const StorageIndex& coeff(Index i) const { return indices().coeff(i); }
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline StorageIndex& coeffRef(Index i) { return indices().coeffRef(i); }
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline const StorageIndex& operator()(Index i) const { return indices()(i); }
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline StorageIndex& operator()(Index i) { return indices()(i); }
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline const StorageIndex& operator[](Index i) const { return indices()(i); }
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline StorageIndex& operator[](Index i) { return indices()(i); }
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return derived().indices(); }
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return derived().indices(); }
 
     /** Resizes to given size. */
+    EIGEN_DEVICE_FUNC
     inline void resize(Index newSize)
     {
       indices().resize(newSize);
     }
 
     /** Sets \c *this to represents an identity transformation */
+    EIGEN_DEVICE_FUNC
     void setIdentity()
     {
       for(StorageIndex i = 0; i < indices().size(); ++i)
@@ -164,26 +180,31 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
     typedef typename Traits::IndicesType IndicesType;
     typedef typename IndicesType::Scalar StorageIndex;
 
+    EIGEN_DEVICE_FUNC
     inline Transpositions() {}
 
     /** Copy constructor. */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     inline Transpositions(const TranspositionsBase<OtherDerived>& other)
       : m_indices(other.indices()) {}
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     /** Standard copy constructor. Defined only to prevent a default copy constructor
       * from hiding the other templated constructor */
+    EIGEN_DEVICE_FUNC
     inline Transpositions(const Transpositions& other) : m_indices(other.indices()) {}
     #endif
 
     /** Generic constructor from expression of the transposition indices. */
     template<typename Other>
+    EIGEN_DEVICE_FUNC
     explicit inline Transpositions(const MatrixBase<Other>& indices) : m_indices(indices)
     {}
 
     /** Copies the \a other transpositions into \c *this */
     template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
     Transpositions& operator=(const TranspositionsBase<OtherDerived>& other)
     {
       return Base::operator=(other);
@@ -193,6 +214,7 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
     /** This is a special case of the templated operator=. Its purpose is to
       * prevent a default operator= from hiding the templated operator=.
       */
+    EIGEN_DEVICE_FUNC
     Transpositions& operator=(const Transpositions& other)
     {
       m_indices = other.m_indices;
@@ -202,12 +224,16 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
 
     /** Constructs an uninitialized permutation matrix of given size.
       */
+    EIGEN_DEVICE_FUNC
     inline Transpositions(Index size) : m_indices(size)
     {}
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return m_indices; }
+
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return m_indices; }
 
   protected:
