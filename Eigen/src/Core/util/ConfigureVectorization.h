@@ -371,12 +371,8 @@
   #include <vector_types.h>
   #if EIGEN_CUDACC_VER >= 70500
     #define EIGEN_HAS_CUDA_FP16
+    #include <cuda_fp16.h>
   #endif
-#endif
-
-#if defined(EIGEN_HAS_CUDA_FP16)
-  #include <host_defines.h>
-  #include <cuda_fp16.h>
 #endif
 
 #if defined(EIGEN_HIP_DEVICE_COMPILE)
