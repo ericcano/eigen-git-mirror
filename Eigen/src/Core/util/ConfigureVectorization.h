@@ -381,7 +381,9 @@
 #endif
 
 #if defined(EIGEN_HAS_CUDA_FP16)
-  #include <host_defines.h>
+  #if EIGEN_CUDACC_VER < 100000
+    #include <host_defines.h>
+  #endif
   #include <cuda_fp16.h>
 #endif
 
