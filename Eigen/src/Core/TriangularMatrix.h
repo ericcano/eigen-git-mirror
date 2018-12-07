@@ -219,7 +219,7 @@ template<typename _MatrixType, unsigned int _Mode> class TriangularView
     {}
     
     using Base::operator=;
-    TriangularView& operator=(const TriangularView &other)
+    EIGEN_DEVICE_FUNC TriangularView& operator=(const TriangularView &other)
     { return Base::operator=(other); }
 
     /** \copydoc EigenBase::rows() */
@@ -946,6 +946,8 @@ template< typename DstXprType, typename Lhs, typename Rhs, typename Scalar>
 struct Assignment<DstXprType, Product<Lhs,Rhs,DefaultProduct>, internal::assign_op<Scalar,typename Product<Lhs,Rhs,DefaultProduct>::Scalar>, Dense2Triangular>
 {
   typedef Product<Lhs,Rhs,DefaultProduct> SrcXprType;
+
+  EIGEN_DEVICE_FUNC
   static void run(DstXprType &dst, const SrcXprType &src, const internal::assign_op<Scalar,typename SrcXprType::Scalar> &)
   {
     Index dstRows = src.rows();
