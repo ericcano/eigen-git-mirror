@@ -81,7 +81,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       * The default constructor is useful in cases in which the user intends to
       * perform decompositions via LLT::compute(const MatrixType&).
       */
-    LLT() : m_matrix(), m_isInitialized(false) {}
+    EIGEN_DEVICE_FUNC LLT() : m_matrix(), m_isInitialized(false) {}
 
     /** \brief Default Constructor with memory preallocation
       *
@@ -89,10 +89,11 @@ template<typename _MatrixType, int _UpLo> class LLT
       * according to the specified problem \a size.
       * \sa LLT()
       */
-    explicit LLT(Index size) : m_matrix(size, size),
+    EIGEN_DEVICE_FUNC explicit LLT(Index size) : m_matrix(size, size),
                     m_isInitialized(false) {}
 
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     explicit LLT(const EigenBase<InputType>& matrix)
       : m_matrix(matrix.rows(), matrix.cols()),
         m_isInitialized(false)
@@ -108,6 +109,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       * \sa LLT(const EigenBase&)
       */
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     explicit LLT(EigenBase<InputType>& matrix)
       : m_matrix(matrix.derived()),
         m_isInitialized(false)
@@ -116,6 +118,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 
     /** \returns a view of the upper triangular matrix U */
+    EIGEN_DEVICE_FUNC
     inline typename Traits::MatrixU matrixU() const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
@@ -123,6 +126,7 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 
     /** \returns a view of the lower triangular matrix L */
+    EIGEN_DEVICE_FUNC
     inline typename Traits::MatrixL matrixL() const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
@@ -141,6 +145,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       */
     template<typename Rhs>
     inline const Solve<LLT, Rhs>
+    EIGEN_DEVICE_FUNC
     solve(const MatrixBase<Rhs>& b) const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
@@ -150,14 +155,17 @@ template<typename _MatrixType, int _UpLo> class LLT
     }
 
     template<typename Derived>
+    EIGEN_DEVICE_FUNC
     void solveInPlace(const MatrixBase<Derived> &bAndX) const;
 
     template<typename InputType>
+    EIGEN_DEVICE_FUNC
     LLT& compute(const EigenBase<InputType>& matrix);
 
     /** \returns an estimate of the reciprocal condition number of the matrix of
       *  which \c *this is the Cholesky decomposition.
       */
+    EIGEN_DEVICE_FUNC
     RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
@@ -169,12 +177,14 @@ template<typename _MatrixType, int _UpLo> class LLT
       *
       * TODO: document the storage layout
       */
+    EIGEN_DEVICE_FUNC
     inline const MatrixType& matrixLLT() const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
       return m_matrix;
     }
 
+    EIGEN_DEVICE_FUNC
     MatrixType reconstructedMatrix() const;
 
 
@@ -183,6 +193,7 @@ template<typename _MatrixType, int _UpLo> class LLT
       * \returns \c Success if computation was successful,
       *          \c NumericalIssue if the matrix.appears not to be positive definite.
       */
+    EIGEN_DEVICE_FUNC
     ComputationInfo info() const
     {
       eigen_assert(m_isInitialized && "LLT is not initialized.");
@@ -194,21 +205,27 @@ template<typename _MatrixType, int _UpLo> class LLT
       * This method is provided for compatibility with other matrix decompositions, thus enabling generic code such as:
       * \code x = decomposition.adjoint().solve(b) \endcode
       */
+    EIGEN_DEVICE_FUNC
     const LLT& adjoint() const { return *this; };
 
+    EIGEN_DEVICE_FUNC
     inline Index rows() const { return m_matrix.rows(); }
+    EIGEN_DEVICE_FUNC
     inline Index cols() const { return m_matrix.cols(); }
 
     template<typename VectorType>
+    EIGEN_DEVICE_FUNC
     LLT & rankUpdate(const VectorType& vec, const RealScalar& sigma = 1);
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>
+    EIGEN_DEVICE_FUNC
     void _solve_impl(const RhsType &rhs, DstType &dst) const;
     #endif
 
   protected:
 
+    EIGEN_DEVICE_FUNC
     static void check_template_parameters()
     {
       EIGEN_STATIC_ASSERT_NON_INTEGER(Scalar);
@@ -229,6 +246,7 @@ namespace internal {
 template<typename Scalar, int UpLo> struct llt_inplace;
 
 template<typename MatrixType, typename VectorType>
+EIGEN_DEVICE_FUNC
 static Index llt_rank_update_lower(MatrixType& mat, const VectorType& vec, const typename MatrixType::RealScalar& sigma)
 {
   using std::sqrt;
@@ -302,6 +320,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
   template<typename MatrixType>
+  EIGEN_DEVICE_FUNC
   static Index unblocked(MatrixType& mat)
   {
     using std::sqrt;
@@ -328,6 +347,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   }
 
   template<typename MatrixType>
+  EIGEN_DEVICE_FUNC
   static Index blocked(MatrixType& m)
   {
     eigen_assert(m.rows()==m.cols());
@@ -360,6 +380,7 @@ template<typename Scalar> struct llt_inplace<Scalar, Lower>
   }
 
   template<typename MatrixType, typename VectorType>
+  EIGEN_DEVICE_FUNC
   static Index rankUpdate(MatrixType& mat, const VectorType& vec, const RealScalar& sigma)
   {
     return Eigen::internal::llt_rank_update_lower(mat, vec, sigma);
@@ -371,18 +392,21 @@ template<typename Scalar> struct llt_inplace<Scalar, Upper>
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
   template<typename MatrixType>
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Index unblocked(MatrixType& mat)
   {
     Transpose<MatrixType> matt(mat);
     return llt_inplace<Scalar, Lower>::unblocked(matt);
   }
   template<typename MatrixType>
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE Index blocked(MatrixType& mat)
   {
     Transpose<MatrixType> matt(mat);
     return llt_inplace<Scalar, Lower>::blocked(matt);
   }
   template<typename MatrixType, typename VectorType>
+  EIGEN_DEVICE_FUNC
   static Index rankUpdate(MatrixType& mat, const VectorType& vec, const RealScalar& sigma)
   {
     Transpose<MatrixType> matt(mat);
@@ -394,9 +418,9 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Lower>
 {
   typedef const TriangularView<const MatrixType, Lower> MatrixL;
   typedef const TriangularView<const typename MatrixType::AdjointReturnType, Upper> MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
-  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m.adjoint()); }
-  static bool inplace_decomposition(MatrixType& m)
+  EIGEN_DEVICE_FUNC static inline MatrixL getL(const MatrixType& m) { return MatrixL(m); }
+  EIGEN_DEVICE_FUNC static inline MatrixU getU(const MatrixType& m) { return MatrixU(m.adjoint()); }
+  EIGEN_DEVICE_FUNC static bool inplace_decomposition(MatrixType& m)
   { return llt_inplace<typename MatrixType::Scalar, Lower>::blocked(m)==-1; }
 };
 
@@ -404,9 +428,9 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
 {
   typedef const TriangularView<const typename MatrixType::AdjointReturnType, Lower> MatrixL;
   typedef const TriangularView<const MatrixType, Upper> MatrixU;
-  static inline MatrixL getL(const MatrixType& m) { return MatrixL(m.adjoint()); }
-  static inline MatrixU getU(const MatrixType& m) { return MatrixU(m); }
-  static bool inplace_decomposition(MatrixType& m)
+  EIGEN_DEVICE_FUNC static inline MatrixL getL(const MatrixType& m) { return MatrixL(m.adjoint()); }
+  EIGEN_DEVICE_FUNC static inline MatrixU getU(const MatrixType& m) { return MatrixU(m); }
+  EIGEN_DEVICE_FUNC static bool inplace_decomposition(MatrixType& m)
   { return llt_inplace<typename MatrixType::Scalar, Upper>::blocked(m)==-1; }
 };
 
@@ -421,6 +445,7 @@ template<typename MatrixType> struct LLT_Traits<MatrixType,Upper>
   */
 template<typename MatrixType, int _UpLo>
 template<typename InputType>
+EIGEN_DEVICE_FUNC
 LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>& a)
 {
   check_template_parameters();
@@ -458,6 +483,7 @@ LLT<MatrixType,_UpLo>& LLT<MatrixType,_UpLo>::compute(const EigenBase<InputType>
   */
 template<typename _MatrixType, int _UpLo>
 template<typename VectorType>
+EIGEN_DEVICE_FUNC
 LLT<_MatrixType,_UpLo> & LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v, const RealScalar& sigma)
 {
   EIGEN_STATIC_ASSERT_VECTOR_ONLY(VectorType);
@@ -474,6 +500,7 @@ LLT<_MatrixType,_UpLo> & LLT<_MatrixType,_UpLo>::rankUpdate(const VectorType& v,
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 template<typename _MatrixType,int _UpLo>
 template<typename RhsType, typename DstType>
+EIGEN_DEVICE_FUNC
 void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
 {
   dst = rhs;
@@ -496,6 +523,7 @@ void LLT<_MatrixType,_UpLo>::_solve_impl(const RhsType &rhs, DstType &dst) const
   */
 template<typename MatrixType, int _UpLo>
 template<typename Derived>
+EIGEN_DEVICE_FUNC
 void LLT<MatrixType,_UpLo>::solveInPlace(const MatrixBase<Derived> &bAndX) const
 {
   eigen_assert(m_isInitialized && "LLT is not initialized.");
@@ -508,6 +536,7 @@ void LLT<MatrixType,_UpLo>::solveInPlace(const MatrixBase<Derived> &bAndX) const
  * i.e., it returns the product: L L^*.
  * This function is provided for debug purpose. */
 template<typename MatrixType, int _UpLo>
+EIGEN_DEVICE_FUNC
 MatrixType LLT<MatrixType,_UpLo>::reconstructedMatrix() const
 {
   eigen_assert(m_isInitialized && "LLT is not initialized.");
@@ -520,6 +549,7 @@ MatrixType LLT<MatrixType,_UpLo>::reconstructedMatrix() const
   */
 template<typename Derived>
 inline const LLT<typename MatrixBase<Derived>::PlainObject>
+EIGEN_DEVICE_FUNC
 MatrixBase<Derived>::llt() const
 {
   return LLT<PlainObject>(derived());
@@ -530,6 +560,7 @@ MatrixBase<Derived>::llt() const
   * \sa SelfAdjointView::llt()
   */
 template<typename MatrixType, unsigned int UpLo>
+EIGEN_DEVICE_FUNC
 inline const LLT<typename SelfAdjointView<MatrixType, UpLo>::PlainObject, UpLo>
 SelfAdjointView<MatrixType, UpLo>::llt() const
 {

@@ -44,8 +44,10 @@ template<bool Conjugate> struct conj_if;
 
 template<> struct conj_if<true> {
   template<typename T>
+  EIGEN_DEVICE_FUNC
   inline T operator()(const T& x) const { return numext::conj(x); }
   template<typename T>
+  EIGEN_DEVICE_FUNC
   inline T pconj(const T& x) const { return internal::pconj(x); }
 };
 
@@ -300,8 +302,8 @@ struct blas_traits<CwiseUnaryOp<scalar_conjugate_op<Scalar>, NestedXpr> >
     IsComplex = NumTraits<Scalar>::IsComplex,
     NeedToConjugate = Base::NeedToConjugate ? 0 : IsComplex
   };
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
-  static inline Scalar extractScalarFactor(const XprType& x) { return conj(Base::extractScalarFactor(x.nestedExpression())); }
+  EIGEN_DEVICE_FUNC static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
+  EIGEN_DEVICE_FUNC static inline Scalar extractScalarFactor(const XprType& x) { return conj(Base::extractScalarFactor(x.nestedExpression())); }
 };
 
 // pop scalar multiple
@@ -323,8 +325,8 @@ struct blas_traits<CwiseBinaryOp<scalar_product_op<Scalar>, NestedXpr, const Cwi
   typedef blas_traits<NestedXpr> Base;
   typedef CwiseBinaryOp<scalar_product_op<Scalar>, NestedXpr, const CwiseNullaryOp<scalar_constant_op<Scalar>,Plain> > XprType;
   typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x.lhs()); }
-  static inline Scalar extractScalarFactor(const XprType& x)
+  EIGEN_DEVICE_FUNC static inline ExtractType extract(const XprType& x) { return Base::extract(x.lhs()); }
+  EIGEN_DEVICE_FUNC static inline Scalar extractScalarFactor(const XprType& x)
   { return Base::extractScalarFactor(x.lhs()) * x.rhs().functor().m_other; }
 };
 template<typename Scalar, typename Plain1, typename Plain2>
@@ -341,8 +343,8 @@ struct blas_traits<CwiseUnaryOp<scalar_opposite_op<Scalar>, NestedXpr> >
   typedef blas_traits<NestedXpr> Base;
   typedef CwiseUnaryOp<scalar_opposite_op<Scalar>, NestedXpr> XprType;
   typedef typename Base::ExtractType ExtractType;
-  static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
-  static inline Scalar extractScalarFactor(const XprType& x)
+  EIGEN_DEVICE_FUNC static inline ExtractType extract(const XprType& x) { return Base::extract(x.nestedExpression()); }
+  EIGEN_DEVICE_FUNC static inline Scalar extractScalarFactor(const XprType& x)
   { return - Base::extractScalarFactor(x.nestedExpression()); }
 };
 
@@ -374,6 +376,7 @@ struct blas_traits<const T>
 
 template<typename T, bool HasUsableDirectAccess=blas_traits<T>::HasUsableDirectAccess>
 struct extract_data_selector {
+  EIGEN_DEVICE_FUNC
   static const typename T::Scalar* run(const T& m)
   {
     return blas_traits<T>::extract(m).data();
@@ -382,10 +385,13 @@ struct extract_data_selector {
 
 template<typename T>
 struct extract_data_selector<T,false> {
+  EIGEN_DEVICE_FUNC
   static typename T::Scalar* run(const T&) { return 0; }
 };
 
-template<typename T> const typename T::Scalar* extract_data(const T& m)
+template<typename T>
+EIGEN_DEVICE_FUNC
+const typename T::Scalar* extract_data(const T& m)
 {
   return extract_data_selector<T>::run(m);
 }
