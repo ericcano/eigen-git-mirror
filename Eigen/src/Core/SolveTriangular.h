@@ -54,7 +54,7 @@ struct triangular_solver_selector<Lhs,Rhs,Side,Mode,NoUnrolling,1>
   typedef blas_traits<Lhs> LhsProductTraits;
   typedef typename LhsProductTraits::ExtractType ActualLhsType;
   typedef Map<Matrix<RhsScalar,Dynamic,1>, Aligned> MappedRhs;
-  static void run(const Lhs& lhs, Rhs& rhs)
+  EIGEN_DEVICE_FUNC static void run(const Lhs& lhs, Rhs& rhs)
   {
     ActualLhsType actualLhs = LhsProductTraits::extract(lhs);
 
@@ -119,6 +119,7 @@ struct triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex,Size,false> {
     DiagIndex  = IsLower ? LoopIndex : Size - LoopIndex - 1,
     StartIndex = IsLower ? 0         : DiagIndex+1
   };
+  EIGEN_DEVICE_FUNC
   static void run(const Lhs& lhs, Rhs& rhs)
   {
     if (LoopIndex>0)
@@ -134,18 +135,19 @@ struct triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex,Size,false> {
 
 template<typename Lhs, typename Rhs, int Mode, int LoopIndex, int Size>
 struct triangular_solver_unroller<Lhs,Rhs,Mode,LoopIndex,Size,true> {
+  EIGEN_DEVICE_FUNC
   static void run(const Lhs&, Rhs&) {}
 };
 
 template<typename Lhs, typename Rhs, int Mode>
 struct triangular_solver_selector<Lhs,Rhs,OnTheLeft,Mode,CompleteUnrolling,1> {
-  static void run(const Lhs& lhs, Rhs& rhs)
+  EIGEN_DEVICE_FUNC static void run(const Lhs& lhs, Rhs& rhs)
   { triangular_solver_unroller<Lhs,Rhs,Mode,0,Rhs::SizeAtCompileTime>::run(lhs,rhs); }
 };
 
 template<typename Lhs, typename Rhs, int Mode>
 struct triangular_solver_selector<Lhs,Rhs,OnTheRight,Mode,CompleteUnrolling,1> {
-  static void run(const Lhs& lhs, Rhs& rhs)
+  EIGEN_DEVICE_FUNC static void run(const Lhs& lhs, Rhs& rhs)
   {
     Transpose<const Lhs> trLhs(lhs);
     Transpose<Rhs> trRhs(rhs);

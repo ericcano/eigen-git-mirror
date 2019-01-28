@@ -590,6 +590,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   }
 
   template<int LoadMode, typename PacketType>
+  EIGEN_DEVICE_FUNC
   const PacketType packet(Index row, Index col) const
   {
     PacketType res;
@@ -601,6 +602,7 @@ struct product_evaluator<Product<Lhs, Rhs, LazyProduct>, ProductTag, DenseShape,
   }
 
   template<int LoadMode, typename PacketType>
+  EIGEN_DEVICE_FUNC
   const PacketType packet(Index index) const
   {
     const Index row = (RowsAtCompileTime == 1 || MaxRowsAtCompileTime==1) ? 0 : index;
@@ -641,6 +643,7 @@ struct product_evaluator<Product<Lhs, Rhs, DefaultProduct>, LazyCoeffBasedProduc
 template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet &res)
   {
     etor_product_packet_impl<RowMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, innerDim, res);
@@ -651,6 +654,7 @@ struct etor_product_packet_impl<RowMajor, UnrollingIndex, Lhs, Rhs, Packet, Load
 template<int UnrollingIndex, typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<ColMajor, UnrollingIndex, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet &res)
   {
     etor_product_packet_impl<ColMajor, UnrollingIndex-1, Lhs, Rhs, Packet, LoadMode>::run(row, col, lhs, rhs, innerDim, res);
@@ -661,6 +665,7 @@ struct etor_product_packet_impl<ColMajor, UnrollingIndex, Lhs, Rhs, Packet, Load
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, 1, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, Packet &res)
   {
     res = pmul(pset1<Packet>(lhs.coeff(row, Index(0))),rhs.template packet<LoadMode,Packet>(Index(0), col));
@@ -670,6 +675,7 @@ struct etor_product_packet_impl<RowMajor, 1, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<ColMajor, 1, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index /*innerDim*/, Packet &res)
   {
     res = pmul(lhs.template packet<LoadMode,Packet>(row, Index(0)), pset1<Packet>(rhs.coeff(Index(0), col)));
@@ -679,6 +685,7 @@ struct etor_product_packet_impl<ColMajor, 1, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, 0, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index /*row*/, Index /*col*/, const Lhs& /*lhs*/, const Rhs& /*rhs*/, Index /*innerDim*/, Packet &res)
   {
     res = pset1<Packet>(typename unpacket_traits<Packet>::type(0));
@@ -688,6 +695,7 @@ struct etor_product_packet_impl<RowMajor, 0, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<ColMajor, 0, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index /*row*/, Index /*col*/, const Lhs& /*lhs*/, const Rhs& /*rhs*/, Index /*innerDim*/, Packet &res)
   {
     res = pset1<Packet>(typename unpacket_traits<Packet>::type(0));
@@ -697,6 +705,7 @@ struct etor_product_packet_impl<ColMajor, 0, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet& res)
   {
     res = pset1<Packet>(typename unpacket_traits<Packet>::type(0));
@@ -708,6 +717,7 @@ struct etor_product_packet_impl<RowMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 template<typename Lhs, typename Rhs, typename Packet, int LoadMode>
 struct etor_product_packet_impl<ColMajor, Dynamic, Lhs, Rhs, Packet, LoadMode>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE void run(Index row, Index col, const Lhs& lhs, const Rhs& rhs, Index innerDim, Packet& res)
   {
     res = pset1<Packet>(typename unpacket_traits<Packet>::type(0));
@@ -732,6 +742,7 @@ struct generic_product_impl<Lhs,Rhs,TriangularShape,DenseShape,ProductTag>
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
     triangular_product_impl<Lhs::Mode,true,typename Lhs::MatrixType,false,Rhs, Rhs::ColsAtCompileTime==1>
@@ -746,6 +757,7 @@ struct generic_product_impl<Lhs,Rhs,DenseShape,TriangularShape,ProductTag>
   typedef typename Product<Lhs,Rhs>::Scalar Scalar;
   
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void scaleAndAddTo(Dest& dst, const Lhs& lhs, const Rhs& rhs, const Scalar& alpha)
   {
     triangular_product_impl<Rhs::Mode,false,Lhs,Lhs::RowsAtCompileTime==1, typename Rhs::MatrixType, false>::run(dst, lhs, rhs.nestedExpression(), alpha);
@@ -828,6 +840,7 @@ public:
                       ||  (DiagonalType::SizeAtCompileTime==Dynamic && MatrixType::ColsAtCompileTime==1 && ProductOrder==OnTheRight)
   };
   
+  EIGEN_DEVICE_FUNC
   diagonal_product_evaluator_base(const MatrixType &mat, const DiagonalType &diag)
     : m_diagImpl(diag), m_matImpl(mat)
   {
@@ -845,6 +858,7 @@ public:
   
 protected:
   template<int LoadMode,typename PacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE PacketType packet_impl(Index row, Index col, Index id, internal::true_type) const
   {
     return internal::pmul(m_matImpl.template packet<LoadMode,PacketType>(row, col),
@@ -852,6 +866,7 @@ protected:
   }
   
   template<int LoadMode,typename PacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE PacketType packet_impl(Index row, Index col, Index id, internal::false_type) const
   {
     enum {
@@ -896,6 +911,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   
 #ifndef EIGEN_GPUCC
   template<int LoadMode,typename PacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE PacketType packet(Index row, Index col) const
   {
     // FIXME: NVCC used to complain about the template keyword, but we have to check whether this is still the case.
@@ -905,6 +921,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DiagonalSha
   }
   
   template<int LoadMode,typename PacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE PacketType packet(Index idx) const
   {
     return packet<LoadMode,PacketType>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
@@ -940,6 +957,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   
 #ifndef EIGEN_GPUCC
   template<int LoadMode,typename PacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE PacketType packet(Index row, Index col) const
   {
     return this->template packet_impl<LoadMode,PacketType>(row,col, col,
@@ -947,6 +965,7 @@ struct product_evaluator<Product<Lhs, Rhs, ProductKind>, ProductTag, DenseShape,
   }
   
   template<int LoadMode,typename PacketType>
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE PacketType packet(Index idx) const
   {
     return packet<LoadMode,PacketType>(int(StorageOrder)==ColMajor?idx:0,int(StorageOrder)==ColMajor?0:idx);
@@ -1039,6 +1058,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Rhs, MatrixShape, PermutationShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
   {
     permutation_matrix_product<Lhs, OnTheRight, false, MatrixShape>::run(dst, rhs, lhs);
@@ -1049,6 +1069,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Inverse<Lhs>, Rhs, PermutationShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Inverse<Lhs>& lhs, const Rhs& rhs)
   {
     permutation_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedExpression(), rhs);
@@ -1059,6 +1080,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Inverse<Rhs>, MatrixShape, PermutationShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Inverse<Rhs>& rhs)
   {
     permutation_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedExpression(), lhs);
@@ -1083,6 +1105,7 @@ struct transposition_matrix_product
   typedef typename remove_all<MatrixType>::type MatrixTypeCleaned;
   
   template<typename Dest, typename TranspositionType>
+  EIGEN_DEVICE_FUNC
   static inline void run(Dest& dst, const TranspositionType& tr, const ExpressionType& xpr)
   {
     MatrixType mat(xpr);
@@ -1106,6 +1129,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Rhs, TranspositionsShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
   {
     transposition_matrix_product<Rhs, OnTheLeft, false, MatrixShape>::run(dst, lhs, rhs);
@@ -1116,6 +1140,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Rhs, MatrixShape, TranspositionsShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
   {
     transposition_matrix_product<Lhs, OnTheRight, false, MatrixShape>::run(dst, rhs, lhs);
@@ -1127,6 +1152,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Transpose<Lhs>, Rhs, TranspositionsShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
   {
     transposition_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedExpression(), rhs);
@@ -1137,6 +1163,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Transpose<Rhs>, MatrixShape, TranspositionsShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
   {
     transposition_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedExpression(), lhs);

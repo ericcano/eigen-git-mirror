@@ -18,6 +18,7 @@ namespace internal {
 template <typename Scalar, typename Index, int Side, int Mode, bool Conjugate, int TriStorageOrder>
 struct triangular_solve_matrix<Scalar,Index,Side,Mode,Conjugate,TriStorageOrder,RowMajor>
 {
+  EIGEN_DEVICE_FUNC
   static void run(
     Index size, Index cols,
     const Scalar*  tri, Index triStride,
@@ -188,6 +189,7 @@ EIGEN_DEVICE_FUNC EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,On
 template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStorageOrder>
 struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor>
 {
+  EIGEN_DEVICE_FUNC
   static EIGEN_DONT_INLINE void run(
     Index size, Index otherSize,
     const Scalar* _tri, Index triStride,
@@ -195,6 +197,7 @@ struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorage
     level3_blocking<Scalar,Scalar>& blocking);
 };
 template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStorageOrder>
+EIGEN_DEVICE_FUNC
 EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor>::run(
     Index size, Index otherSize,
     const Scalar* _tri, Index triStride,

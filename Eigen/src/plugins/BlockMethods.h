@@ -1373,6 +1373,7 @@ InnerVectorReturnType innerVector(Index outer)
 /// \returns the \a outer -th column (resp. row) of the matrix \c *this if \c *this
 /// is col-major (resp. row-major). Read-only.
 ///
+EIGEN_DEVICE_FUNC
 const ConstInnerVectorReturnType innerVector(Index outer) const
 { return ConstInnerVectorReturnType(derived(), outer); }
 

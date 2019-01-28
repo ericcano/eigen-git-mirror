@@ -40,7 +40,14 @@ const std::ptrdiff_t defaultL3CacheSize = 512*1024;
 struct CacheSizes {
   CacheSizes(): m_l1(-1),m_l2(-1),m_l3(-1) {
     int l1CacheSize, l2CacheSize, l3CacheSize;
+
+#if !defined(EIGEN_CUDA_ARCH)
     queryCacheSizes(l1CacheSize, l2CacheSize, l3CacheSize);
+#else
+    l1CacheSize = defaultL1CacheSize;
+    l2CacheSize = 1572864;
+    l3CacheSize = defaultL3CacheSize;
+#endif
     m_l1 = manage_caching_sizes_helper(l1CacheSize, defaultL1CacheSize);
     m_l2 = manage_caching_sizes_helper(l2CacheSize, defaultL2CacheSize);
     m_l3 = manage_caching_sizes_helper(l3CacheSize, defaultL3CacheSize);
@@ -50,7 +57,6 @@ struct CacheSizes {
   std::ptrdiff_t m_l2;
   std::ptrdiff_t m_l3;
 };
-
 
 /** \internal */
 EIGEN_DEVICE_FUNC
@@ -795,6 +801,7 @@ public:
   {
     loadRhs(b,dest);
   }
+
   EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, DoublePacketType& dest) const
   {
@@ -945,6 +952,7 @@ public:
     dest = pset1<RhsPacketType>(*b);
   }
   
+  EIGEN_DEVICE_FUNC
   void broadcastRhs(const RhsScalar* b, RhsPacket& b0, RhsPacket& b1, RhsPacket& b2, RhsPacket& b3)
   {
     pbroadcast4(b, b0, b1, b2, b3);
