@@ -65,19 +65,21 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
   #ifdef EIGEN_CUDA_ARCH
   if (action==GetAction)
   {
-    // assume some sensible numbers
+    #if EIGEN_CUDA_ARCH >= 700
+    // Volta, Turing, or newer
+    //   - the L1 cache is configurable at runtime, with a minimum of 32 KB/SM
+    //   - the L2 cache depends on the actual card, with a minimum of 64 KB/SM
     *l1 =   32 * 1024;
-    *l2 = 1024 * 1024;
+    *l2 =   64 * 1024;
     *l3 =           0;
-    // query the L2 cache size
-    int currentDevice;
-    int l2CacheSize;
-    cudaGetDevice(&currentDevice);
-    cudaDeviceGetAttribute(&l2CacheSize, cudaDevAttrL2CacheSize, currentDevice);
-    if (l2CacheSize)
-    {
-      *l2 = l2CacheSize;
-    }
+    #else
+    // Kepler, Maxwell, Pascal
+    //   - the L1 cache is configurable at runtime, with a minimum of 16 KB/SM
+    //   - the L2 cache depends on the actual card, with a minimum of 64 KB/SM
+    *l1 =   16 * 1024;
+    *l2 =   64 * 1024;
+    *l3 =           0;
+    #endif
   }
   else
   {
