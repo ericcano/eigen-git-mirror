@@ -1008,6 +1008,7 @@ struct permutation_matrix_product<ExpressionType, Side, Transposed, DenseShape>
     typedef typename remove_all<MatrixType>::type MatrixTypeCleaned;
 
     template<typename Dest, typename PermutationType>
+    EIGEN_DEVICE_FUNC
     static inline void run(Dest& dst, const PermutationType& perm, const ExpressionType& xpr)
     {
       MatrixType mat(xpr);
