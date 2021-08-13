@@ -73,8 +73,8 @@ public:
   typedef typename XprType::Scalar Scalar;
 private:
 
-  Scalar coeff(Index row, Index col) const;
-  Scalar coeff(Index i) const;
+  EIGEN_DEVICE_FUNC Scalar coeff(Index row, Index col) const;
+  EIGEN_DEVICE_FUNC Scalar coeff(Index i) const;
 };
 
 namespace internal {

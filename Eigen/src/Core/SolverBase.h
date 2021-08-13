@@ -104,6 +104,7 @@ class SolverBase : public EigenBase<Derived>
     /** \returns an expression of the solution x of \f$ A x = b \f$ using the current decomposition of A.
       */
     template<typename Rhs>
+    EIGEN_DEVICE_FUNC
     inline const Solve<Derived, Rhs>
     solve(const MatrixBase<Rhs>& b) const
     {

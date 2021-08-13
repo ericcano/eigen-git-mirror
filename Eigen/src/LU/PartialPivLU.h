@@ -194,6 +194,7 @@ template<typename _MatrixType> class PartialPivLU
     /** \returns an estimate of the reciprocal condition number of the matrix of which \c *this is
         the LU decomposition.
       */
+    EIGEN_DEVICE_FUNC
     inline RealScalar rcond() const
     {
       eigen_assert(m_isInitialized && "PartialPivLU is not initialized.");
@@ -227,12 +228,12 @@ template<typename _MatrixType> class PartialPivLU
       *
       * \sa MatrixBase::determinant()
       */
-    Scalar determinant() const;
+    EIGEN_DEVICE_FUNC Scalar determinant() const;
 
-    MatrixType reconstructedMatrix() const;
+    EIGEN_DEVICE_FUNC MatrixType reconstructedMatrix() const;
 
-    inline Index rows() const { return m_lu.rows(); }
-    inline Index cols() const { return m_lu.cols(); }
+    EIGEN_DEVICE_FUNC inline Index rows() const { return m_lu.rows(); }
+    EIGEN_DEVICE_FUNC inline Index cols() const { return m_lu.cols(); }
 
     #ifndef EIGEN_PARSED_BY_DOXYGEN
     template<typename RhsType, typename DstType>

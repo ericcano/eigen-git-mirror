@@ -432,10 +432,10 @@ template <typename Packet>
 struct QuadPacket
 {
   Packet B_0, B1, B2, B3;
-  const Packet& get(const FixedInt<0>&) const { return B_0; }
-  const Packet& get(const FixedInt<1>&) const { return B1; }
-  const Packet& get(const FixedInt<2>&) const { return B2; }
-  const Packet& get(const FixedInt<3>&) const { return B3; }
+  EIGEN_DEVICE_FUNC const Packet& get(const FixedInt<0>&) const { return B_0; }
+  EIGEN_DEVICE_FUNC const Packet& get(const FixedInt<1>&) const { return B1; }
+  EIGEN_DEVICE_FUNC const Packet& get(const FixedInt<2>&) const { return B2; }
+  EIGEN_DEVICE_FUNC const Packet& get(const FixedInt<3>&) const { return B3; }
 };
 
 template <int N, typename T1, typename T2, typename T3>
@@ -1382,6 +1382,7 @@ struct last_row_process_16_packets
   typedef typename SwappedTraits::ResPacket SResPacket;
   typedef typename SwappedTraits::AccPacket SAccPacket;
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void operator()(const DataMapper& res, SwappedTraits &straits, const LhsScalar* blA,
                   const RhsScalar* blB, Index depth, const Index endk, Index i, Index j2,
                   ResScalar alpha, SAccPacket &C0)
@@ -1411,6 +1412,7 @@ struct last_row_process_16_packets<LhsScalar, RhsScalar, Index, DataMapper,  mr,
   typedef typename SwappedTraits::ResPacket SResPacket;
   typedef typename SwappedTraits::AccPacket SAccPacket;
 
+  EIGEN_DEVICE_FUNC
   EIGEN_STRONG_INLINE void operator()(const DataMapper& res, SwappedTraits &straits, const LhsScalar* blA,
                   const RhsScalar* blB, Index depth, const Index endk, Index i, Index j2,
                   ResScalar alpha, SAccPacket &C0)
@@ -1650,6 +1652,7 @@ template<int nr, Index LhsProgress, Index RhsProgress, typename LhsScalar, typen
 struct lhs_process_fraction_of_packet : lhs_process_one_packet<nr, LhsProgress, RhsProgress, LhsScalar, RhsScalar, ResScalar, AccPacket, LhsPacket, RhsPacket, ResPacket, GEBPTraits, LinearMapper, DataMapper>
 {
 
+EIGEN_DEVICE_FUNC
 EIGEN_STRONG_INLINE void peeled_kc_onestep(Index K, const LhsScalar* blA, const RhsScalar* blB, GEBPTraits traits, LhsPacket *A0, RhsPacket *B_0, RhsPacket *B1, RhsPacket *B2, RhsPacket *B3, AccPacket *C0, AccPacket *C1, AccPacket *C2, AccPacket *C3)
   {
         EIGEN_ASM_COMMENT("begin step of gebp micro kernel 1X4");

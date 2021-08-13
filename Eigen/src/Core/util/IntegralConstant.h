@@ -51,43 +51,43 @@ template<int N> class VariableAndFixedInt;
 template<int N> class FixedInt
 {
 public:
-  static const int value = N;
-  operator int() const { return value; }
-  FixedInt() {}
-  FixedInt( VariableAndFixedInt<N> other) {
+  static constexpr int value = N;
+  EIGEN_DEVICE_FUNC operator int() const { return value; }
+  EIGEN_DEVICE_FUNC FixedInt() {}
+  EIGEN_DEVICE_FUNC FixedInt( VariableAndFixedInt<N> other) {
     #ifndef EIGEN_INTERNAL_DEBUGGING
     EIGEN_UNUSED_VARIABLE(other);
     #endif
     eigen_internal_assert(int(other)==N);
   }
 
-  FixedInt<-N> operator-() const { return FixedInt<-N>(); }
+  EIGEN_DEVICE_FUNC FixedInt<-N> operator-() const { return FixedInt<-N>(); }
   template<int M>
-  FixedInt<N+M> operator+( FixedInt<M>) const { return FixedInt<N+M>(); }
+  EIGEN_DEVICE_FUNC FixedInt<N+M> operator+( FixedInt<M>) const { return FixedInt<N+M>(); }
   template<int M>
-  FixedInt<N-M> operator-( FixedInt<M>) const { return FixedInt<N-M>(); }
+  EIGEN_DEVICE_FUNC FixedInt<N-M> operator-( FixedInt<M>) const { return FixedInt<N-M>(); }
   template<int M>
-  FixedInt<N*M> operator*( FixedInt<M>) const { return FixedInt<N*M>(); }
+  EIGEN_DEVICE_FUNC FixedInt<N*M> operator*( FixedInt<M>) const { return FixedInt<N*M>(); }
   template<int M>
-  FixedInt<N/M> operator/( FixedInt<M>) const { return FixedInt<N/M>(); }
+  EIGEN_DEVICE_FUNC FixedInt<N/M> operator/( FixedInt<M>) const { return FixedInt<N/M>(); }
   template<int M>
-  FixedInt<N%M> operator%( FixedInt<M>) const { return FixedInt<N%M>(); }
+  EIGEN_DEVICE_FUNC FixedInt<N%M> operator%( FixedInt<M>) const { return FixedInt<N%M>(); }
   template<int M>
-  FixedInt<N|M> operator|( FixedInt<M>) const { return FixedInt<N|M>(); }
+  EIGEN_DEVICE_FUNC FixedInt<N|M> operator|( FixedInt<M>) const { return FixedInt<N|M>(); }
   template<int M>
-  FixedInt<N&M> operator&( FixedInt<M>) const { return FixedInt<N&M>(); }
+  EIGEN_DEVICE_FUNC FixedInt<N&M> operator&( FixedInt<M>) const { return FixedInt<N&M>(); }
 
 #if EIGEN_HAS_CXX14
   // Needed in C++14 to allow fix<N>():
-  FixedInt operator() () const { return *this; }
+  EIGEN_DEVICE_FUNC FixedInt operator() () const { return *this; }
 
-  VariableAndFixedInt<N> operator() (int val) const { return VariableAndFixedInt<N>(val); }
+  EIGEN_DEVICE_FUNC VariableAndFixedInt<N> operator() (int val) const { return VariableAndFixedInt<N>(val); }
 #else
   FixedInt ( FixedInt<N> (*)() ) {}
 #endif
 
 #if EIGEN_HAS_CXX11
-  FixedInt(std::integral_constant<int,N>) {}
+  EIGEN_DEVICE_FUNC FixedInt(std::integral_constant<int,N>) {}
 #endif
 };
 
@@ -124,8 +124,8 @@ template<int N> class VariableAndFixedInt
 {
 public:
   static const int value = N;
-  operator int() const { return m_value; }
-  VariableAndFixedInt(int val) { m_value = val; }
+  EIGEN_DEVICE_FUNC operator int() const { return m_value; }
+  EIGEN_DEVICE_FUNC VariableAndFixedInt(int val) { m_value = val; }
 protected:
   int m_value;
 };
@@ -186,7 +186,7 @@ template<int N, int DynamicKey> struct cleanup_index_type<std::integral_constant
 
 #if EIGEN_HAS_CXX14
 template<int N>
-static const internal::FixedInt<N> fix{};
+EIGEN_DEVICE_FUNC static const internal::FixedInt<N> fix{};
 #else
 template<int N>
 inline internal::FixedInt<N> fix() { return internal::FixedInt<N>(); }

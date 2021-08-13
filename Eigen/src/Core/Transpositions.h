@@ -23,7 +23,9 @@ class TranspositionsBase
     typedef typename IndicesType::Scalar StorageIndex;
     typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
 
+    EIGEN_DEVICE_FUNC
     Derived& derived() { return *static_cast<Derived*>(this); }
+    EIGEN_DEVICE_FUNC
     const Derived& derived() const { return *static_cast<const Derived*>(this); }
 
     /** Copies the \a other transpositions into \c *this */
@@ -36,13 +38,17 @@ class TranspositionsBase
     }
 
     /** \returns the number of transpositions */
+    EIGEN_DEVICE_FUNC
     Index size() const { return indices().size(); }
     /** \returns the number of rows of the equivalent permutation matrix */
+    EIGEN_DEVICE_FUNC
     Index rows() const { return indices().size(); }
     /** \returns the number of columns of the equivalent permutation matrix */
+    EIGEN_DEVICE_FUNC
     Index cols() const { return indices().size(); }
 
     /** Direct access to the underlying index vector */
+    EIGEN_DEVICE_FUNC
     inline const StorageIndex& coeff(Index i) const { return indices().coeff(i); }
     /** Direct access to the underlying index vector */
     EIGEN_DEVICE_FUNC
@@ -61,8 +67,10 @@ class TranspositionsBase
     inline StorageIndex& operator[](Index i) { return indices()(i); }
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return derived().indices(); }
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return derived().indices(); }
 
     /** Resizes to given size. */
@@ -205,9 +213,11 @@ class Transpositions : public TranspositionsBase<Transpositions<SizeAtCompileTim
     {}
 
     /** const version of indices(). */
+    EIGEN_DEVICE_FUNC
     const IndicesType& indices() const { return m_indices; }
 
     /** \returns a reference to the stored array representing the transpositions. */
+    EIGEN_DEVICE_FUNC
     IndicesType& indices() { return m_indices; }
 
   protected:

@@ -1063,6 +1063,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Rhs, PermutationShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
   {
     permutation_matrix_product<Rhs, OnTheLeft, false, MatrixShape>::run(dst, lhs, rhs);
@@ -1073,6 +1074,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Rhs, MatrixShape, PermutationShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
   {
     permutation_matrix_product<Lhs, OnTheRight, false, MatrixShape>::run(dst, rhs, lhs);
@@ -1083,6 +1085,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Inverse<Lhs>, Rhs, PermutationShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Inverse<Lhs>& lhs, const Rhs& rhs)
   {
     permutation_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedExpression(), rhs);
@@ -1093,6 +1096,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Inverse<Rhs>, MatrixShape, PermutationShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Inverse<Rhs>& rhs)
   {
     permutation_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedExpression(), lhs);
@@ -1117,6 +1121,7 @@ struct transposition_matrix_product
   typedef typename remove_all<MatrixType>::type MatrixTypeCleaned;
   
   template<typename Dest, typename TranspositionType>
+  EIGEN_DEVICE_FUNC
   static inline void run(Dest& dst, const TranspositionType& tr, const ExpressionType& xpr)
   {
     MatrixType mat(xpr);
@@ -1140,6 +1145,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Rhs, TranspositionsShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
   {
     transposition_matrix_product<Rhs, OnTheLeft, false, MatrixShape>::run(dst, lhs, rhs);
@@ -1150,6 +1156,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Rhs, MatrixShape, TranspositionsShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Rhs& rhs)
   {
     transposition_matrix_product<Lhs, OnTheRight, false, MatrixShape>::run(dst, rhs, lhs);
@@ -1161,6 +1168,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Transpose<Lhs>, Rhs, TranspositionsShape, MatrixShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Transpose<Lhs>& lhs, const Rhs& rhs)
   {
     transposition_matrix_product<Rhs, OnTheLeft, true, MatrixShape>::run(dst, lhs.nestedExpression(), rhs);
@@ -1171,6 +1179,7 @@ template<typename Lhs, typename Rhs, int ProductTag, typename MatrixShape>
 struct generic_product_impl<Lhs, Transpose<Rhs>, MatrixShape, TranspositionsShape, ProductTag>
 {
   template<typename Dest>
+  EIGEN_DEVICE_FUNC
   static void evalTo(Dest& dst, const Lhs& lhs, const Transpose<Rhs>& rhs)
   {
     transposition_matrix_product<Lhs, OnTheRight, true, MatrixShape>::run(dst, rhs.nestedExpression(), lhs);
